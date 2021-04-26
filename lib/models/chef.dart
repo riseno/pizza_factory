@@ -1,9 +1,25 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:pizza_factory/chef_interface.dart';
-import 'package:pizza_factory/order.dart';
+import 'package:pizza_factory/models/order.dart';
 
-class Chef4 extends Equatable with ChangeNotifier implements ChefInterface {
+class Chef extends Equatable with ChangeNotifier {
+  final String name;
+  final int speed;
+
+  bool isPaused = false;
+  List<Order> _orders = [];
+
+  Chef({
+    this.name,
+    this.speed = 0,
+  });
+
+  void setStatus(bool isPaused) {
+    isPaused = isPaused;
+
+    notifyListeners();
+  }
+
   void toggleStatus() {
     isPaused = !isPaused;
 
@@ -11,28 +27,28 @@ class Chef4 extends Equatable with ChangeNotifier implements ChefInterface {
   }
 
   void addOrder(Order order) {
-    orders.add(order);
+    _orders.add(order);
 
     notifyListeners();
   }
 
   List<Order> getOrders() {
-    return orders;
+    return _orders;
   }
 
   Order getOrderByIndex(int index) {
-    return orders[index];
+    return _orders[index];
   }
 
   void removeOrder(Order order) {
-    orders.remove(order);
+    _orders.remove(order);
 
     notifyListeners();
   }
 
   void eliminateOrder() {
-    if (orders.length > 0) {
-      orders.removeAt(0);
+    if (_orders.length > 0) {
+      _orders.removeAt(0);
       notifyListeners();
     }
   }
@@ -42,18 +58,6 @@ class Chef4 extends Equatable with ChangeNotifier implements ChefInterface {
         name,
         speed,
         isPaused,
-        orders,
+        _orders,
       ];
-
-  @override
-  bool isPaused = false;
-
-  @override
-  List<Order> orders = [];
-
-  @override
-  String get name => "Chef 4";
-
-  @override
-  int get speed => 4;
 }

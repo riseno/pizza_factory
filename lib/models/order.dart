@@ -31,5 +31,6 @@ class Order extends Equatable {
   }
 
   @override
-  String toString() => "Order{name: $name, size: $size, toppings: $toppings}";
+  String toString() =>
+      "Order{id: $id, name: $name, size: $size, toppings: $toppings}";
 }

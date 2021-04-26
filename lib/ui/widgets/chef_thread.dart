@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:pizza_factory/chef_interface.dart';
-import 'package:pizza_factory/order.dart';
-import 'package:pizza_factory/toggle_status.dart';
+import 'package:pizza_factory/models/chef.dart';
+import 'package:pizza_factory/models/order.dart';
 
 class ChefThread extends StatefulWidget {
-  final ChefInterface chef;
+  final Chef chef;
   final String chefAvatar;
   final StreamController<Order> streamController;
   final Function(bool isPaused) isPauseCallback;
@@ -32,14 +30,7 @@ class _ChefThreadState extends State<ChefThread> {
     super.initState();
 
     widget.streamController.stream.listen((event) {
-      print("Chef ${widget.chef.name} received order.");
-
-      if (event is Order) {
-        widget.chef.addOrder(event);
-      } else if (event is ToggleStatus) {
-        widget.chef.toggleStatus();
-        widget.isPauseCallback(widget.chef.isPaused);
-      }
+      widget.chef.addOrder(event);
     });
 
     Timer.periodic(Duration(seconds: widget.chef.speed), (timer) {
@@ -47,6 +38,19 @@ class _ChefThreadState extends State<ChefThread> {
         widget.chef.eliminateOrder();
       }
     });
+  }
+
+  void _delegateOrder(Order order) async {
+    await http.post('http://localhost/api/delegate-order',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'id': order.id,
+        }));
+
+    widget.chef.removeOrder(order);
   }
 
   @override
@@ -122,7 +126,7 @@ class _ChefThreadState extends State<ChefThread> {
           SizedBox(
             height: 10.0,
           ),
-          widget.chef.orders.length > 0
+          widget.chef.getOrders().length > 0
               ? _orderList(context)
               : Center(
                   child: Text("No Orders."),
@@ -132,23 +136,10 @@ class _ChefThreadState extends State<ChefThread> {
     );
   }
 
-  void _delegateOrder(Order order) async {
-    await http.post('http://localhost/api/delegate-order',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode({
-          'id': order.id,
-        }));
-
-    widget.chef.removeOrder(order);
-  }
-
   Widget _orderList(BuildContext context) {
     return Expanded(
       child: ListView.builder(
-        itemCount: widget.chef.orders.length,
+        itemCount: widget.chef.getOrders().length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
           Order order = widget.chef.getOrderByIndex(index);
